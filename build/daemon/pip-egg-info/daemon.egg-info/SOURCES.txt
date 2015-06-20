@@ -1,0 +1,5 @@
+daemon.py
+pip-egg-info/daemon.egg-info/PKG-INFO
+pip-egg-info/daemon.egg-info/SOURCES.txt
+pip-egg-info/daemon.egg-info/dependency_links.txt
+pip-egg-info/daemon.egg-info/top_level.txt

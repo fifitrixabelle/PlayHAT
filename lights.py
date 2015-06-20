@@ -10,11 +10,6 @@ from neopixel import *
 from beautifulhue.api import Bridge
 import RPi.GPIO as GPIO
 
-# PID management
-import daemon
-context = daemon.DaemonContext()
-context.pidfile = PidFile("/tmp/lights.pid")
-
 # LED strip configuration:
 LED_COUNT      = 9       # Number of LED pixels.
 LED_PIN        = 18      # GPIO pin connected to the pixels (must support PWM!).
@@ -73,6 +68,7 @@ def turnOnAll(colour):
     }
     colorWipe(strip, Color(*LED_COLOURS[colour]))
     BRIDGE.group.update(resource)
+    colorWipe(strip, Color(0, 0, 0))
 
 def turnOffAll():
     print "Turning off"
