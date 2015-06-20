@@ -1,6 +1,0 @@
-README
-pidfile.py
-pip-egg-info/pidfile.egg-info/PKG-INFO
-pip-egg-info/pidfile.egg-info/SOURCES.txt
-pip-egg-info/pidfile.egg-info/dependency_links.txt
-pip-egg-info/pidfile.egg-info/top_level.txt
