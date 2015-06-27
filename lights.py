@@ -5,6 +5,12 @@
 # various animations on a strip of NeoPixels.
 import time
 import sys
+import httplib
+import urllib2
+import socket
+import exceptions
+socket.setdefaulttimeout(30)
+from IPython import embed
 
 from neopixel import *
 from beautifulhue.api import Bridge
@@ -38,80 +44,91 @@ HUE_COLOURS = {
     'yellow':12750,
     'blue':46920,
     'green':25500
-}
+    }
 LED_COLOURS = {
     'red':[255,0,0],
     'yellow':[255,255,0],
     'blue':[0,0,255],
     'green':[0,255,0]
-}
+    }
 
 # Define functions which animate LEDs in various ways.
 def colorWipe(strip, color, wait_ms=50):
-    """Wipe color across display a pixel at a time."""
-    for i in range(strip.numPixels()):
-        strip.setPixelColor(i, color)
-        strip.show()
-        time.sleep(wait_ms/1000.0)
+  """Wipe color across display a pixel at a time."""
+  for i in range(strip.numPixels()):
+    strip.setPixelColor(i, color)
+    strip.show()
+    time.sleep(wait_ms/1000.0)
 
 def turnOnAll(colour):
-    print colour
-    resource = {
-        'which':0,
-        'data':{
-            'action':{
-                'on':True,
-                'hue':HUE_COLOURS[colour],
-                'bri':255
-            }
+  print colour
+  resource = {
+      'which':0,
+      'data':{
+        'action':{
+          'on':True,
+          'hue':HUE_COLOURS[colour],
+          'bri':255
+          }
         }
-    }
-    colorWipe(strip, Color(*LED_COLOURS[colour]))
-    BRIDGE.group.update(resource)
-    colorWipe(strip, Color(0, 0, 0))
+      }
+  colorWipe(strip, Color(*LED_COLOURS[colour]))
+  BRIDGE.group.update(resource)
+  colorWipe(strip, Color(0, 0, 0))
 
 def turnOffAll():
-    print "Turning off"
-    resource = {
-        'which':0,
-        'data':{
-            'action':{
-                'on':False,
-            }
+  print "Turning off"
+  resource = {
+      'which':0,
+      'data':{
+        'action':{
+          'on':False,
+          }
         }
-    }
-    BRIDGE.group.update(resource)
-    colorWipe(strip, Color(0, 0, 0))
+      }
+  BRIDGE.group.update(resource)
+  colorWipe(strip, Color(0, 0, 0))
 
-# Main program logic follows:
-try:
-    if __name__ == '__main__':
-        strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
-        strip.begin()
+def cleanUp():
+  turnOffAll()
+  GPIO.cleanup()
+  exit()
 
-        print 'Press Ctrl-C to quit.'
-        active = False
-        buttons = {
-            RED_BUTTON_PIN:"red",
-            YELLOW_BUTTON_PIN:"yellow",
-            GREEN_BUTTON_PIN:"green",
-            BLUE_BUTTON_PIN:"blue"
-        }
-        while True:
-            # if button pressed change lights
-            for button in buttons.keys():
-                if not GPIO.input(button):
-                    if active:
-                        turnOffAll()
-                        active = False
-                    else:
-                        turnOnAll(buttons[button])
-                        active = True
-            time.sleep(0.1)
 
-except:
-    print
+if __name__ == '__main__':
+  strip = Adafruit_NeoPixel(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
+  strip.begin()
 
-finally:
-    turnOffAll()
-    GPIO.cleanup()
+  print 'Press Ctrl-C to quit.'
+  active = ""
+  buttons = {
+      RED_BUTTON_PIN:"red",
+      YELLOW_BUTTON_PIN:"yellow",
+      GREEN_BUTTON_PIN:"green",
+      BLUE_BUTTON_PIN:"blue"
+      }
+  while True:
+    try:
+      # if button pressed change lights
+      for button in buttons.keys():
+        if not GPIO.input(button):
+          if active == buttons[button]:
+            turnOffAll()
+            active = ""
+            time.sleep(0.5)
+          else:
+            turnOnAll(buttons[button])
+            active = buttons[button]
+            time.sleep(0.5)
+      time.sleep(0.1)
+
+    except httplib.BadStatusLine: pass
+
+    except exceptions.KeyboardInterrupt:
+      cleanUp()
+
+    except:
+      print "Unexpected error:", sys.exc_info()[0]
+      cleanup()
+
+  cleanUp()
